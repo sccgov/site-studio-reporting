@@ -91,6 +91,7 @@ class SiteStudioReportingCommands extends DrushCommands
      *   label: Label
      *   entity_id: Entity ID
      *   in_use: In Use
+     *   urls: URLs
      * @default-fields label,entity_id,in_use
      * @usage site_studio_reporting-usage
      *   Get usage reporting for Site Studio entities.
@@ -109,7 +110,7 @@ class SiteStudioReportingCommands extends DrushCommands
         $show_links = $options['show_links'];
 
         if ($entity_id && !$entity_type) {
-            return $this->say(t('You must specify an entity_type using the --entity_type option please.'));
+            return $this->say(t('You must specify an entity_type using the --entity_type option please test.'));
         }
 
         if ($entity_id || $entity_type) {
