@@ -67,11 +67,11 @@ class SiteStudioReportingCommands extends DrushCommands
      * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
      */
     public function __construct(TranslationInterface $stringTranslation, UsageUpdateManager $usageUpdateManager, EntityRepository $entityRepository, EntityTypeManagerInterface $entityTypeManager) {
-      parent::__construct();
-      $this->stringTranslation = $stringTranslation;
-      $this->usageUpdateManager = $usageUpdateManager;
-      $this->entityRepository = $entityRepository;
-      $this->entityTypeManager = $entityTypeManager;
+        parent::__construct();
+        $this->stringTranslation = $stringTranslation;
+        $this->usageUpdateManager = $usageUpdateManager;
+        $this->entityRepository = $entityRepository;
+        $this->entityTypeManager = $entityTypeManager;
     }
 
     /**
@@ -99,43 +99,46 @@ class SiteStudioReportingCommands extends DrushCommands
      * @return \Consolidation\OutputFormatters\StructuredData\RowsOfFields
      */
     public function report($options = ['entity_id' => NULL, 'entity_type' => NULL, 'show_in_use_only' => FALSE, 'format' => NULL]) {
-      // Get options.
-      $entity_id = (!empty($options['entity_id'])) ? [$options['entity_id']] : NULL;
-      $entity_type = $options['entity_type'];
-      $show_in_use_only = $options['show_in_use_only'];
+        // Get options.
+        $entity_id = (!empty($options['entity_id'])) ? [$options['entity_id']] : NULL;
+        $entity_type = $options['entity_type'];
+        $show_in_use_only = $options['show_in_use_only'];
 
-      if ($entity_id && !$entity_type) {
-        return $this->say(t('You must specify an entity_type using the --entity_type option.'));
-      }
-
-      if ($entity_id || $entity_type) {
-        $entities = $this->entityTypeManager->getStorage($entity_type)->loadMultiple($entity_id);
-
-        $rows = [];
-        foreach($entities as $entity) {
-          $entity_in_use = $this->usageUpdateManager->hasInUse($entity);
-
-          if ($show_in_use_only && !$entity_in_use) {
-            continue;
-          }
-
-          $rows[$entity->get('id')] = [
-            'label' => $entity->get('label'),
-            'entity_id' => $entity->get('id'),
-            'in_use' => $entity_in_use,
-          ];
+        if ($entity_id && !$entity_type) {
+          return $this->say(t('You must specify an entity_type using the --entity_type option please.'));
         }
 
-        usort($rows, function ($a, $b) {
-            return $a['in_use'] < $b['in_use'];
-        });
+        if ($entity_id || $entity_type) {
+            $entities = $this->entityTypeManager->getStorage($entity_type)->loadMultiple($entity_id);
 
-        return new RowsOfFields($rows);
-      }
-      // None of the options set.
-      else {
-        return $this->say(t('You must specify at least the entity type using the --entity_type option.'));
-      }
+            $rows = [];
+            foreach($entities as $entity)
+              {
+                $entity_in_use = $this->usageUpdateManager->hasInUse($entity);
+
+                if ($show_in_use_only && !$entity_in_use) {
+                    continue;
+                }
+
+                $rows[$entity->get('id')] = [
+                'label' => $entity->get('label'),
+                'entity_id' => $entity->get('id'),
+                'in_use' => $entity_in_use,
+                ];
+            }
+
+            usort($rows, function ($a, $b) {
+                return $a['in_use'] < $b['in_use'];
+              }
+            );
+
+          return new RowsOfFields($rows);
+        }
+        // None of the options set.
+        else
+        {
+            return $this->say(t('You must specify at least the entity type using the --entity_type option.'));
+        }
     }
 
     /**
@@ -155,18 +158,18 @@ class SiteStudioReportingCommands extends DrushCommands
      * @filter-default-field name
      * @return \Consolidation\OutputFormatters\StructuredData\RowsOfFields
      */
-    
-  public function token($options = ['format' => 'table']) {
-    $all = \Drupal::token()->getInfo();
-    foreach ($all['tokens'] as $group => $tokens) {
-      foreach ($tokens as $key => $token) {
-        $rows[] = [
-          'group' => $group,
-          'token' => $key,
-          'name' => $token['name'],
-        ];
-      }
+    public function token($options = ['format' => 'table'])
+    {
+        $all = \Drupal::token()->getInfo();
+        foreach ($all['tokens'] as $group => $tokens) {
+            foreach ($tokens as $key => $token) {
+                $rows[] = [
+                  'group' => $group,
+                  'token' => $key,
+                  'name' => $token['name'],
+                ];
+            }
+        }
+        return new RowsOfFields($rows);
     }
-    return new RowsOfFields($rows);
-  }
 }
