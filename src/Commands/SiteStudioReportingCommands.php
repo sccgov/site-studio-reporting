@@ -85,6 +85,8 @@ class SiteStudioReportingCommands extends DrushCommands
      *   Get usage statistics for all entities of this type.
      * @option show_in_use_only
      *   Only show the in use entities.
+     * @option show_links
+     *  List out links where the component is being used
      * @field-labels
      *   label: Label
      *   entity_id: Entity ID
@@ -98,45 +100,49 @@ class SiteStudioReportingCommands extends DrushCommands
      *
      * @return \Consolidation\OutputFormatters\StructuredData\RowsOfFields
      */
-    public function report($options = ['entity_id' => NULL, 'entity_type' => NULL, 'show_in_use_only' => FALSE, 'format' => NULL]) {
+    public function report($options = ['entity_id' => null, 'entity_type' => null, 'show_in_use_only' => false, 'format' => null, 'show_links' => false])
+    {
         // Get options.
-        $entity_id = (!empty($options['entity_id'])) ? [$options['entity_id']] : NULL;
+        $entity_id = (!empty($options['entity_id'])) ? [$options['entity_id']] : null;
         $entity_type = $options['entity_type'];
         $show_in_use_only = $options['show_in_use_only'];
+        $show_links = $options['show_links'];
 
         if ($entity_id && !$entity_type) {
-          return $this->say(t('You must specify an entity_type using the --entity_type option please.'));
+            return $this->say(t('You must specify an entity_type using the --entity_type option please.'));
         }
 
         if ($entity_id || $entity_type) {
             $entities = $this->entityTypeManager->getStorage($entity_type)->loadMultiple($entity_id);
 
             $rows = [];
-            foreach($entities as $entity)
-              {
+            foreach ($entities as $entity) {
                 $entity_in_use = $this->usageUpdateManager->hasInUse($entity);
-
                 if ($show_in_use_only && !$entity_in_use) {
                     continue;
                 }
-
-                $rows[$entity->get('id')] = [
-                'label' => $entity->get('label'),
-                'entity_id' => $entity->get('id'),
-                'in_use' => $entity_in_use,
-                ];
+                if($show_links) {
+                    $rows[$entity->get('id')] = [
+                      'label' => $entity->get('label'),
+                      'entity_id' => $entity->get('id'),
+                      'in_use' => $entity_in_use,
+                      'urls' => $entity->get('toUrl')
+                      ];
+                }
+                else {
+                  $rows[$entity->get('id')] = [
+                    'label' => $entity->get('label'),
+                    'entity_id' => $entity->get('id'),
+                    'in_use' => $entity_in_use,
+                    ];
+                }
             }
-
             usort($rows, function ($a, $b) {
                 return $a['in_use'] < $b['in_use'];
-              }
+            }
             );
-
-          return new RowsOfFields($rows);
-        }
-        // None of the options set.
-        else
-        {
+            return new RowsOfFields($rows);
+        } else {
             return $this->say(t('You must specify at least the entity type using the --entity_type option.'));
         }
     }
